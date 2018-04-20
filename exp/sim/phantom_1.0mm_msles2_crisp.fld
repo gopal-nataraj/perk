@@ -1,0 +1,10 @@
+# AVS field file
+ndim=3
+dim1=181
+dim2=217
+dim3=181
+nspace=3
+veclen=1
+data=byte
+field=uniform
+variable 1 file=phantom_1.0mm_msles2_crisp.rawb filetype=binary
