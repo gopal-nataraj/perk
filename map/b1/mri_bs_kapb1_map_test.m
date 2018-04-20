@@ -7,20 +7,21 @@
 %   1.1       2015-07-17      original
 %   1.2       2016-06-10      modified for v1.3
 %   1.3       2016-06-13      strong gauss filtering of init sense maps 
+%   1.4       2018-04-20      now generating data using spgr_fun_v2(...)
 
 %% Load true parameter maps and set scan protocol
-% Load digital phantom
+% irt
 if (~exist('irtdir', 'var'))
-    curdir = pwd; 
-    cd ../../../irt; 
-    setup(); 
-    cd(curdir);
+  curdir = cd('~/Box/work/irt');
+  irtdir = pwd;
+  setup();
+  cd(curdir);
 end
 
-addpath('../../data/DigitalPhantom');
-addpath('../../model/bs/');
+% mapping
 addpath('../../model/spgr/');
 addpath('../../map/sense/');
+addpath('../../exp/sim/');
 
 % Load phantom file
 f.filename = 'phantom_1.0mm_msles2_crisp.fld';
@@ -51,7 +52,7 @@ for idx = 0:10
     T2_true(T2_true == idx) = f.t2;
     T2s_true(T2s_true == idx) = f.t2s;
 end
-wf_true = 0; 
+wf_true = zeros(size(M0_true)); 
 
 % Make a M0s_true map, where M0s = M0 * exp(-TE/T2s)
 % This is to be used for generating the forward model 
@@ -100,10 +101,18 @@ ph = exp(1i * Kbs * abs(b1_true).^2);
 yp_coil_true = NaN(nx, ny, nRc);
 ym_coil_true = NaN(nx, ny, nRc);
 for c = 1:nRc
-    yp_coil_true(:,:,c) = smap(:,:,c) .* (spgr_fun(M0s_true, T1_true, kap_true,...
-        flip_s, TRs, TEs, wf_true, 1) .* ph);
-    ym_coil_true(:,:,c) = smap(:,:,c) .* (spgr_fun(M0s_true, T1_true, kap_true,...
-        flip_s, TRs, TEs, wf_true, 1) .* conj(ph));
+  yp_coil_true(:,:,c) = smap(:,:,c) .* ph .* spgr_fun_v2(...
+    M0s_true, T1_true, T2_true,...
+    flip_s, TRs, TEs,...
+    'kap', kap_true,...
+    'dw', wf_true,...
+    'mag', 1);
+  ym_coil_true(:,:,c) = smap(:,:,c) .* conj(ph) .* spgr_fun_v2(...
+    M0s_true, T1_true, T2_true,...
+    flip_s, TRs, TEs,...
+    'kap', kap_true,...
+    'dw', wf_true,...
+    'mag', 1);
 end
 
 % Add complex white Gaussian noise
@@ -127,7 +136,7 @@ bs.dt = dt * 1000;
 % Mapping
 mapArg = {...
   'mask', loose_mask,...
-	'coilOpt', {'nouter', 10, 'fwhm', 5},...
+	'coilOpt', {'nouter', 3, 'fwhm', 5},...
   'stop.iter', 1000,...
   'reg.beta', 2^2,...
   'bool.chat', true,...
@@ -135,7 +144,7 @@ mapArg = {...
 x = mri_bs_kapb1_map(y, bs, mapArg{:});
 
 % Display output
-disp_range = b1_peak * kap_mean * [1-kap_range 1+kap_range];
+disp_range = b1_peak * kap_mean * [1-2*kap_range 1+2*kap_range];
 err_range  = [0 b1_peak/10];
 
 figure, im(cat(3, x.b1.mom, x.b1.rls, b1_true), disp_range, 'cbar');
