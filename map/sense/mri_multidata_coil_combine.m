@@ -218,7 +218,7 @@ if (arg.normalize)
     tmp = median(tmp(tmp > arg.thresh * max(tmp(:))));
     arg.bodycoil = arg.bodycoil / tmp; 
     y_jmc = y_jmc / tmp;
-    if (arg.disp), dispmax = dispmax / tmp; end;
+    if (arg.disp), dispmax = dispmax / tmp; end
 end
 
 % Set x_reg initial estimate to body coil reference

@@ -1,4 +1,4 @@
-% script mri_multidata_coil_combine.m
+% script mri_multidata_coil_combine_test.m
 % test script for multi-dataset coil combination via mri_multidata_coil_combine.m
 %
 % copyright 2015, gopal nataraj, university of michigan
@@ -6,20 +6,21 @@
 % version control
 %   1.1     2015-03-19    original
 %   1.2     2016-06-12    testing noise amplification issues
+%   1.3     2018-04-20    now generating data using spgr_fun_v2(...) and dess_fun_v2(...)
 
 %% Load true parameter maps
-% Load digital phantom
+% irt
 if (~exist('irtdir', 'var'))
-    curdir = pwd; 
-    cd ../../../../../irt; 
-    setup(); 
-    cd(curdir);
+  curdir = cd('~/Box/work/irt'); 
+  irtdir = pwd;
+  setup();
+  cd(curdir);
 end
 
-addpath('../../data/DigitalPhantom');
-addpath('../../model/dess/');
+% mapping
 addpath('../../model/spgr/');
-addpath('../../map/sense/');
+addpath('../../model/dess/');
+addpath('../../exp/sim/');
 
 % Load phantom file
 f.filename = 'phantom_1.0mm_msles2_crisp.fld';
@@ -38,7 +39,7 @@ for idx = 0:10
     T2_true(T2_true == idx) = f.t2;
     T2s_true(T2s_true == idx) = f.t2s;
 end
-wf_true = 0;
+wf_true = zeros(nx, ny);
 
 % Create a true excitation profile map
 % [xx, yy] = ndgrid(linspace(-0.5, 0.5, nx), linspace(-0.5, 0.5, ny));
@@ -82,8 +83,12 @@ smap = mri_sensemap_sim('nx', nx, 'ny', ny, 'dx', 1, 'dy', 1, 'ncoil', nc, 'chat
 ys_true = NaN(nx, ny, nfs, nc);
 xs_true = NaN(nx, ny, nfs);
 for a = 1:nfs
-    xs_true(:,:,a) = spgr_fun(M0s_true, T1_true, kap_true,...
-        flip_s(a), TRs(a), TEs(a), wf_true, 0);
+    xs_true(:,:,a) = spgr_fun_v2(...
+      M0s_true, T1_true, T2_true,...
+      flip_s(a), TRs(a), TEs(a),...
+      'kap', kap_true,...
+      'dw', wf_true,...
+      'mag', 0);
     for c = 1:nc
         ys_true(:,:,a,c) = fft2(smap(:,:,c) .* xs_true(:,:,a));
     end
@@ -95,8 +100,12 @@ ym_true = NaN(nx, ny, nfd, nc);
 xp_true = NaN(nx, ny, nfd);
 xm_true = NaN(nx, ny, nfd);
 for a = 1:nfd
-    [xp_true(:,:,a), xm_true(:,:,a)] = dess_fun(M0s_true, T1_true,...
-        T2_true, kap_true, flip_d(a), TRd(a), TEd(a), wf_true, 0);
+    [xp_true(:,:,a), xm_true(:,:,a)] = dess_fun_v2(...
+      M0s_true, T1_true, T2_true,...
+      flip_d(a), TRd(a), TEd(a), TEd(a),...
+      'kap', kap_true,...
+      'dw', wf_true,...
+      'mag', 0);
     for c = 1:nc
         yp_true(:,:,a,c) = fft2(smap(:,:,c) .* xp_true(:,:,a));
         ym_true(:,:,a,c) = fft2(smap(:,:,c) .* xm_true(:,:,a));
@@ -107,8 +116,8 @@ end
 x_true = cat(3, xs_true, xp_true, xm_true);
 
 % Add complex white gaussian noise 
-% var_im = 1.31e-7; 
-var_im = 1e-5;
+var_im = 1.31e-7; 
+% var_im = 1e-5;
 sig_k = sqrt(var_im * (nx*ny));
 ys = ys_true + sig_k * (randn(size(ys_true)) + 1i * randn(size(ys_true)));
 yp = yp_true + sig_k * (randn(size(yp_true)) + 1i * randn(size(yp_true)));
@@ -124,8 +133,7 @@ y_im = cat(3, ys_im, yp_im, ym_im);
 
 %% Estimate coil sensitivities and underlying object
 [x_reg, s_reg, x_sos, s_ml, cost] = ...
-    mri_multidata_coil_combine(y_im,...
-    'normalize', 0, 'nouter', 10);
+    mri_multidata_coil_combine(y_im, 'normalize', 0, 'nouter', 10);
 
 % Rotate true smap to have zero phase in 1st coil, relative phase after
 % Compensate phase of x_true to reflect this modification
