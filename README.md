@@ -9,8 +9,11 @@ To appear in IEEE Transactions on Medical Imaging
 
 ## Getting Started
 
-1. If necessary, install the Michigan Image Reconstruction Toolbox,  
-available for free download [here](http://web.eecs.umich.edu/~fessler/code/).
+1. Install the Michigan Image Reconstruction Toolbox, available for free download [here](http://web.eecs.umich.edu/~fessler/code/).
 
-2. 
+2. Replicate the paper's results by following directions within subdirectories of `./exp`. 
+
+3. For implementations of PERK and other tested algorithms, go to `./map/t1-t2`.
+
+4. For PERK intuition, check out the toy problems within `./toy/`.
 
