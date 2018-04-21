@@ -1,7 +1,7 @@
-  function train = krr_train(rff, dist, y, w, nu, P, dim, bool)
-%|function train = krr_train(rff, dist, y, w, nu, P, dim, bool)
+  function train = perk_train(rff, dist, y, w, nu, P, dim, bool)
+%|function train = perk_train(rff, dist, y, w, nu, P, dim, bool)
 %|
-%|  kernel ridge regression training
+%|  PERK training
 %|
 %|  inputs
 %|    rff       [1x1 struct]    random fourier features object
@@ -36,10 +36,10 @@
 %|     .chat    false|true        verbosity  
 %|     .reset   false|true        reset random number generator during training   
 %|     .rfftst  false|true        show kernel approximation
-%|     .nuclip  false|true        (krr) clip nu sampling distribtion   
+%|     .nuclip  false|true        (perk) clip nu sampling distribtion   
 %|
 %|  outputs
-%|    train     [1x1 struct]    krr training parameter object (if empty, will train)
+%|    train     [1x1 struct]    perk training parameter object (if empty, will train)
 %|     .mean.z  [H]               sample mean of feature maps
 %|     .mean.x  [L]               sample mean of x
 %|     .cov.zz  [H H]             sample auto-cov of feature maps
@@ -51,7 +51,7 @@
 %|  version control
 %|    1.1       2017-06-06      adapted from mri_multicomp_map(...)
 %|    1.2       2017-06-12      rff.snr now controls m0 distribution sampling
-%|    1.3       2017-09-14      added krr nu distribution clipping
+%|    1.3       2017-09-14      added perk nu distribution clipping
 
 % optional: reset random number generator
 if bool.reset
