@@ -1,6 +1,6 @@
 # Parameter Estimation via Regression with Kernels (PERK)  
 
-This is the project directory for code related to the paper: 
+This is the project directory for code and data related to the paper: 
 
 Gopal Nataraj, Jon-Fredrik Nielsen, and Jeffrey Fessler  
 Dictionary-Free MRI PERK: Parameter Estimation via Regression with Kernels  
