@@ -51,7 +51,7 @@
 %|     .t2      [(odims)]         spin-spin relaxation time                                   ms
 %|     .inveff  [(odims)]         inversion efficiency (S.ir>0 only)
 %|    meth      [1x1 struct]    estimation methods                  
-%|     .init    {1}               initialization                        def: 'krr'
+%|     .init    {1}               initialization                        def: 'perk'
 %|     .iter    {1}               iterative local optimization          def: 'pgpm'  
 %|    dist.x    [1x1 struct]    latent parameter sampling distribution object (ignored if x0 set!)  
 %|                                2nd field: latent parameter (m0,t1,t2(,inveff))
@@ -64,14 +64,14 @@
 %|    kmean     [1x1 struct]    (vpm,pgpm) kmeans object to pool x0/nu
 %|     .C       [1]               number of kmeans clusters             def: 10
 %|     .opt     {1 2*nopt}        optional arguments to kmeans          def: see below
-%|    rff       [1x1 struct]    (krr) random fourier features object
+%|    rff       [1x1 struct]    (perk) random fourier features object
 %|     .snr     [1]               estimate of max sig for unity m0      def: 0.1
 %|     .std     [1]               noise std dev in training data        def: est from noise 
 %|     .len     [D+N]             kernel input length scales            def: from data
 %|     .c       [1]               global kernel length scale parameter  def: 2^0
 %|     .H       [1]               embedding dimension                   def: 10^4
 %|     .K       [1]               number of training samples            def: 10^6
-%|    train     [1x1 struct]    (krr) training parameter object         def: from training
+%|    train     [1x1 struct]    (perk) training parameter object         def: from training
 %|     .mean.z  [H]               sample mean of feature maps
 %|     .mean.x  [L]               sample mean of x
 %|     .cov.zz  [H H]             sample auto-cov of feature maps
@@ -80,7 +80,7 @@
 %|     .freq    [H D+N]           random 'frequency' vector
 %|     .ph      [H]               random phase vector
 %|    inv       [1x1 struct]    matrix inversion reg strength object
-%|     .krr     [1]               kernel ridge regression               def: 10^-8
+%|     .perk     [1]              kernel ridge regression               def: 10^-8
 %|     .lm      [1]               levenberg-marquardt                   def: 10^-8
 %|    precon    [1x1 struct]    preconditioning parameter object        
 %|     .update  [1]               number of iter to update precon       def: 5
@@ -103,9 +103,9 @@
 %|     .chat    false|true        verbosity                             def: false
 %|     .norm    false|true        normalize data for scale-invar reg    def: true
 %|     .m0dess  false|true        (mom) use dess data for m0 est        def: false
-%|     .reset   false|true        (krr) reset rng while sampling        def: true
-%|     .rfftst  false|true        (krr) show kernel approximation       def: false
-%|     .nuclip  false|true        (krr) clip nu sampling distribtion    def: true
+%|     .reset   false|true        (perk) reset rng while sampling       def: true
+%|     .rfftst  false|true        (perk) show kernel approximation      def: false
+%|     .nuclip  false|true        (perk) clip nu sampling distribtion   def: true
 %|     .reg     false|true        use regularization                    def: false
 %|     .precon  false|true        use preconditioner (hessian approx)   def: true
 %|     .disp    false|true        show image updates                    def: false
@@ -137,11 +137,11 @@
 %|    4.1       2016-06-28      x0 may be partially preset; vpm now clusters over nu
 %|    4.2       2016-07-02      switched from proj gauss-newton to proj levenberg-marquardt
 %|    4.3       2016-07-17      if nu and preset x0 are all uniform, set kmean.C to 1
-%|    5.1       2017-06-06      added krr init option
+%|    5.1       2017-06-06      added perk init option
 %|    5.2       2017-06-12      rff.snr now controls m0 distribution sampling
-%|    5.3       2017-06-17      added krr regularization strengh option
+%|    5.3       2017-06-17      added perk regularization strengh option
 %|    5.4       2017-07-10      switched output format from e.g. x.m0.init to x.init.m0
-%|    5.5       2017-09-14      added krr nu distribution clipping
+%|    5.5       2017-09-14      added perk nu distribution clipping
 %|    6.1       2017-12-19      added method-of-moments init option for spgr/dess
 %|    6.2       2018-01-12      pgpm now loops over tissue clusters for separate line searches
 %|    6.3       2018-02-06      if rff.std set and bool.norm=1, now rescales rff.std
@@ -224,7 +224,7 @@ if dim.L>3
   arg.x0.inveff = [];
 end
 
-arg.meth.init = 'krr';
+arg.meth.init = 'perk';
 arg.meth.iter = 'pgpm';
 
 arg.dist.x.m0.supp = [];
@@ -259,7 +259,7 @@ arg.rff.K = 10^6;
 
 arg.train = [];
 
-arg.inv.krr = 10^-8;
+arg.inv.perk = 10^-8;
 arg.inv.lm = 10^-8;
 
 arg.precon.update = 5;
@@ -455,7 +455,7 @@ y = cat(length(dim.odims)+1,...
   reshape(y.se, [dim.odims dim.Dse]),...
   reshape(y.sp, [dim.odims dim.Dsp]),...
   reshape(y.de, [dim.odims dim.Dde]));                                  % [(odims) D]
-if strcmp(arg.meth.init, 'krr')
+if strcmp(arg.meth.init, 'perk')
   n = masker(y, arg.mask.noise);                                        % [V_bg D]
   n = col(transpose(n));                                                % [DV_bg]
 end
@@ -470,7 +470,7 @@ if arg.bool.norm
   y = div0(y,scale);
   if ~isempty(arg.x0.m0)
     arg.x0.m0 = div0(arg.x0.m0,scale);
-  elseif strcmp(arg.meth.init, 'krr')
+  elseif strcmp(arg.meth.init, 'perk')
     n = div0(n,scale);
   end
 end
@@ -563,9 +563,9 @@ if tmp<dim.L
 
       % max-likelihood estimation via variable projection method
       if arg.bool.chat
-        fprintf('\n=============================================================');
-        fprintf('\nInitialization via VarPro...');
-        fprintf('\n=============================================================\n');
+        fprintf('\n======================================================================');
+        fprintf('\nParameter estimation via variable proj method (VPM) and grid search...');
+        fprintf('\n======================================================================\n');
       end
       [arg.x0, t.init] = varpro(...
         y, arg.x0, arg.nu, P, w,...
@@ -598,13 +598,13 @@ if tmp<dim.L
       
       % method-of-moments estimation via algebraic manipulations
       if arg.bool.chat
-        fprintf('\n=============================================================');
-        fprintf('\nInitialization via Method-of-Moments Estimation...');
-        fprintf('\n=============================================================\n');
+        fprintf('\n======================================================================');
+        fprintf('\nParameter estimation via method-of-moments (MOM)...');
+        fprintf('\n======================================================================\n');
       end
       [arg.x0, t.init] = mom(...
         tmp, arg.x0, arg.nu, P, w, dim, arg.bool, arg.mask.est);        % {L} cell w/ [V] arrays
-    case 'krr'
+    case 'perk'
       % check max sig for unity m0
       if arg.rff.snr>1
         error('max unity-m0 signal cannot exceed 1!');
@@ -613,12 +613,12 @@ if tmp<dim.L
       elseif arg.rff.snr>0.3
         tmp = strcat(...
           'Detected max unity-m0 signal >0.3: are you sure?\n',...
-          'Overestimating may induce improper m0 sampling and krr errors...');
+          'Overestimating may induce improper m0 sampling and perk errors...');
         warn(tmp);
       elseif arg.rff.snr<0.01
         tmp = strcat(...
           'Detected max unity-m0 signal <0.01: are you sure?\n',...
-          'Underestimating will cause inefficient m0 sampling and krr underperformance...');
+          'Underestimating will cause inefficient m0 sampling and perk underperformance...');
         warn(tmp);
       end
       
@@ -657,21 +657,21 @@ if tmp<dim.L
       
       % kernel regression
       if arg.bool.chat
-        fprintf('=============================================================');
-        fprintf('\nInitialization via Kernel Regression...');
-        fprintf('\n=============================================================\n');
+        fprintf('======================================================================');
+        fprintf('\nParameter estimation via regression with kernels (PERK)...');
+        fprintf('\n======================================================================\n');
       end
-      [arg.x0, t.init] = krr(...
+      [arg.x0, t.init] = perk(...
         y, arg.x0, arg.nu, P, w,...
-        arg.rff, arg.train, arg.dist, arg.inv.krr,...
+        arg.rff, arg.train, arg.dist, arg.inv.perk,...
         dim, arg.bool, arg.mask.est);                                 % {L} cell w/ [V] blocks
     otherwise
       error('Unknown initialization method requested!');
   end
   if arg.bool.chat  
-    fprintf('========================================================================');
+    fprintf('======================================================================');
     fprintf('\n                                    ...done in %0.3f seconds.', t.init);
-    fprintf('\n========================================================================\n');
+    fprintf('\n======================================================================\n');
   end
 else
   for l = 1:dim.L
@@ -721,19 +721,19 @@ end
 % choose iterative method
 switch arg.meth.iter
   case 'plm'
-    if arg.bool.chat
-      fprintf('\n=============================================================');
-      fprintf('\nIterative estimation via projected levenberg-marquardt...');
-      fprintf('\n=============================================================\n');
+    if arg.bool.chat && arg.stop.iter>0
+      fprintf('\n======================================================================');
+      fprintf('\nParameter estimation via projected levenberg-marquardt...');
+      fprintf('\n======================================================================\n');
     end
     [tmp, t.iter] = plm(...
       y, arg.x0, arg.nu, P, w, arg.inv.lm, arg.boxcon,...
       arg.reg, arg.stop, dim, arg.bool, arg.mask.est, arg.disp);        % {L} cell w/ [V] blocks
   case 'pgpm'
-    if arg.bool.chat
-      fprintf('\n=============================================================');
-      fprintf('\nIterative estimation via gradient projection method...');
-      fprintf('\n=============================================================\n');
+    if arg.bool.chat && arg.stop.iter>0
+      fprintf('\n======================================================================');
+      fprintf('\nParameter estimation via precon gradient projection method (PGPM)...');
+      fprintf('\n======================================================================');
     end
     [tmp, t.iter] = pgpm(...
       y, arg.x0, arg.nu, P, w, arg.kmean, arg.precon,...
@@ -741,10 +741,10 @@ switch arg.meth.iter
   otherwise
     error('Unknown iterative method!');
 end
-if arg.bool.chat
-  fprintf('==================================================');
+if arg.bool.chat && arg.stop.iter>0
+  fprintf('\n======================================================================');
   fprintf('\n                        ...done in %0.3f seconds.', t.iter);
-  fprintf('\n==================================================\n\n');
+  fprintf('\n======================================================================\n\n');
 end
 
 % trick: rescale m0 for output

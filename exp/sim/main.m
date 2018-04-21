@@ -148,7 +148,7 @@ nu.est.b0  = (0+c.rng.b0.est/2)  - c.rng.b0.est *(xx.^2 + yy.^2);
 nu.est.r2p = (0+c.rng.r2p.est/2) - c.rng.r2p.est*(xx.^2 + yy.^2);
 
 % estimation options
-meth.init = {'vpm','mom','krr'};
+meth.init = {'vpm','mom','perk'};
 meth.iter = 'pgpm';
 dist.x.t1.nsamp = 5; 
 % dist.x.t1.nsamp = 500;
@@ -163,9 +163,8 @@ rff.len = [];
 rff.c = 2^0.6;
 rff.H = 10^3;
 rff.K = 10^5;
-inv.krr = 2^-41;
-boxcon.t1 = [100 3000].'; 
-boxcon.t2 = [10 700].'; 
+inv.perk = 2^-41;
+boxcon.t1 = [100 3000'; 
 stop.iter = [0, 0, 0]; 
 % stop.iter = [0, 1000, 0];
 bool.mag.ir = 0;
@@ -341,7 +340,7 @@ catch
           else
             dist.x.t2.supp = [10^0.5 10^3].';
           end
-        elseif strcmp(meth.init{i},'krr')
+        elseif strcmp(meth.init{i},'perk')
           dist.x.t1.supp = [400 2000].';
           if p==4
             dist.x.t2.supp = [10^6 10^6].';
@@ -368,7 +367,7 @@ catch
           'meth.iter', meth.iter,...
           'kmean.C', kmean.C(i),...
           'rff', rff,...
-          'inv.krr', inv.krr,...
+          'inv.perk', inv.perk,...
           'boxcon.t1', boxcon.t1,...
           'boxcon.t2', boxcon.t2,...
           'stop.iter', stop.iter(i),...

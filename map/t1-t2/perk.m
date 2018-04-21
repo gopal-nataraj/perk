@@ -1,7 +1,7 @@
-  function [x, t] = krr(y, x0, nu, P, w, rff, train, dist, reg, dim, bool, mask)
-%|function [x, t] = krr(y, x0, nu, P, w, rff, train, dist, reg, dim, bool, mask)
+  function [x, t] = perk(y, x0, nu, P, w, rff, train, dist, reg, dim, bool, mask)
+%|function [x, t] = perk(y, x0, nu, P, w, rff, train, dist, reg, dim, bool, mask)
 %|
-%|  latent parameter estimation via kernel ridge regression
+%|  parameter estimation via regression with kernels
 %|    approximates gaussian kernel via random fourier features
 %|
 %|  inputs
@@ -32,14 +32,14 @@
 %|      .prior  {1}                 ('unif', 'logunif') distribution     
 %|     .nu      {K cell}          known parameter object
 %|      .supp   [2]                 [lb ub] distribution support  
-%|    train     [1x1 struct]    krr training parameter object (if empty, will train)
+%|    train     [1x1 struct]    perk training parameter object (if empty, will train)
 %|     .mean.z  [H]               sample mean of feature maps
 %|     .mean.x  [L]               sample mean of x
 %|     .cov.zz  [H H]             sample auto-cov of feature maps
 %|     .cov.xz  [L H]             sample cross-cov b/w x and feature maps
 %|     .freq    [H D+N]           random 'frequency' vector
 %|     .ph      [H]               random phase vector 
-%|    reg       [1]             krr regularization parameter
+%|    reg       [1]             perk regularization parameter
 %|    dim       [1x1 struct]    object containing dimension info
 %|    bool      [1x1 struct]    boolean variables          
 %|     .mag.*   false|true        using magnitude (spgr,dess) data
@@ -58,12 +58,12 @@
 %|  version control
 %|    1.1       2017-06-06      adapted from mri_multicomp_map(...)
 %|    1.2       2017-06-12      rff.snr now controls m0 distribution sampling
-%|    1.3       2017-06-17      now passing krr regularization parameter
-%|    1.4       2017-09-14      added krr nu distribution clipping
+%|    1.3       2017-06-17      now passing perk regularization parameter
+%|    1.4       2017-09-14      added perk nu distribution clipping
 
 % check that data is pure real
 if ~isreal(y)
-  error('Kernel regression with random fourier features for pure-real data only!');
+  error('PERK with random fourier features for pure-real data only!');
 end
 
 % transfer prespecified x0 maps as known parameters
@@ -101,7 +101,7 @@ if ~all(tmp)
   
   % train to estimate sample statistics
   tic;
-  train = krr_train(rff, dist, y, w, nu, P, dim, bool);
+  train = perk_train(rff, dist, y, w, nu, P, dim, bool);
   tmp = toc;
   
   if bool.chat
