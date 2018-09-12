@@ -2,9 +2,9 @@
 
 This is the project directory for code and data related to the paper: 
 
-Gopal Nataraj, Jon-Fredrik Nielsen, and Jeffrey Fessler  
+Gopal Nataraj, Jon-Fredrik Nielsen, Clayton Scott, and Jeffrey Fessler  
 Dictionary-Free MRI PERK: Parameter Estimation via Regression with Kernels  
-To appear in IEEE Transactions on Medical Imaging  
+IEEE Transactions on Medical Imaging, 37(9):2103-14, Sept. 2018
 [http://dx.doi.org/10.1109/TMI.2018.2817547]  
 
 ## Getting Started
