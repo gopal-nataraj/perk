@@ -17,3 +17,4 @@ IEEE Transactions on Medical Imaging, 37(9):2103-14, Sept. 2018
 
 4. For PERK intuition, check out the toy problems within `./toy/`.
 
+For a Julia version of PERK, see https://github.com/StevenWhitaker/PERK.jl
