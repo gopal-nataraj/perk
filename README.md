@@ -1,6 +1,6 @@
 # Parameter Estimation via Regression with Kernels (PERK)  
 
-This is the project directory for code and data related to the paper: 
+This repo provides demo code and data related to the paper:
 
 Gopal Nataraj, Jon-Fredrik Nielsen, Clayton Scott, and Jeffrey Fessler  
 Dictionary-Free MRI PERK: Parameter Estimation via Regression with Kernels  
@@ -9,7 +9,7 @@ IEEE Transactions on Medical Imaging, 37(9):2103-14, Sept. 2018
 
 ## Getting Started
 
-1. Install the Michigan Image Reconstruction Toolbox, available for free download [here](http://web.eecs.umich.edu/~fessler/code/).
+1. Install the [Michigan Image Reconstruction Toolbox](https://github.com/JeffFessler/mirt).
 
 2. Replicate the paper's results by following directions within subdirectories of `./exp`. 
 
@@ -17,4 +17,7 @@ IEEE Transactions on Medical Imaging, 37(9):2103-14, Sept. 2018
 
 4. For PERK intuition, check out the toy problems within `./toy/`.
 
-For a Julia version of PERK, see https://github.com/StevenWhitaker/PERK.jl
+## Further Work
+
+See this [repo](https://github.com/StevenWhitaker/PERK.jl) for a Julia version of PERK.
+
