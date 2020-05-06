@@ -11,11 +11,13 @@ IEEE Transactions on Medical Imaging, 37(9):2103-14, Sept. 2018
 
 1. Install the [Michigan Image Reconstruction Toolbox](https://github.com/JeffFessler/mirt).
 
-2. Replicate the paper's results by following directions within subdirectories of `./exp`. 
+2. Install (clone) this repository
 
-3. For implementations of PERK and other tested algorithms, go to `./map/t1-t2`.
+3. Replicate the paper's results by following directions within subdirectories of `./exp`. 
 
-4. For PERK intuition, check out the toy problems within `./toy/`.
+4. For implementations of PERK and other tested algorithms, go to `./map/t1-t2`.
+
+5. For PERK intuition, check out the toy problems within `./toy/`.
 
 ## Further Work
 
